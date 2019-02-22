@@ -70,6 +70,6 @@ public class JsonBuilder {
   }
 
   private String formatDateOnly(LocalDate date) {
-    return date.toString(DateTimeFormat.forPattern("yyyy-MM-dd"));
+    return date.toString(DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC());
   }
 }
