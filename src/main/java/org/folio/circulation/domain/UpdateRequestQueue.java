@@ -56,6 +56,8 @@ public class UpdateRequestQueue {
 
       String requestPickupServicePointId = firstRequest.getPickupServicePointId();
 
+      requestQueue.removeGapsInPositions();
+
       if (checkInServicePointId.equalsIgnoreCase(requestPickupServicePointId)) {
         firstRequest.changeStatus(RequestStatus.OPEN_AWAITING_PICKUP);
         if (firstRequest.getHoldShelfExpirationDate() == null) {
@@ -76,6 +78,7 @@ public class UpdateRequestQueue {
                 return firstRequest;
               }))
               .thenComposeAsync(r -> r.after(requestRepository::update))
+              .thenComposeAsync(r -> r.after(v -> requestQueueRepository.updateRequestsWithChangedPositions(requestQueue)))
               .thenApply(r -> r.map(v -> requestQueue));
         }
       } else {
@@ -84,6 +87,7 @@ public class UpdateRequestQueue {
       }
 
       return requestRepository.update(firstRequest)
+        .thenComposeAsync(r -> r.after(v -> requestQueueRepository.updateRequestsWithChangedPositions(requestQueue)))
         .thenApply(result -> result.map(v -> requestQueue));
 
     } else {

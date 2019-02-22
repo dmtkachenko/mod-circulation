@@ -93,7 +93,7 @@ public class RequestQueue {
       .collect(Collectors.toList());
   }
 
-  private void removeGapsInPositions() {
+  void removeGapsInPositions() {
     Integer currentPosition = 1;
 
     for (Request request : requests) {
