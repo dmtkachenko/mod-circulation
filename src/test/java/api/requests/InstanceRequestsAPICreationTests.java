@@ -1,5 +1,7 @@
 package api.requests;
 
+import static api.support.matchers.ValidationErrorMatchers.hasErrorWith;
+import static api.support.matchers.ValidationErrorMatchers.hasMessage;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -17,6 +19,7 @@ import org.folio.circulation.domain.RequestType;
 import org.folio.circulation.support.http.client.IndividualResource;
 import org.folio.circulation.support.http.client.Response;
 import org.folio.circulation.support.http.client.ResponseHandler;
+import org.hamcrest.junit.MatcherAssert;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -151,10 +154,8 @@ public class InstanceRequestsAPICreationTests extends APITests {
 
     final Response response = attemptToPlaceInstanceRequest(requestBody);
 
-    JsonObject representation = response.getJson();
-    assertEquals("Request must have an instance id", representation.getJsonArray("errors")
-                                                                            .getJsonObject(0)
-                                                                            .getString("message"));
+    MatcherAssert.assertThat(response.getJson(), hasErrorWith(hasMessage(
+      "Request must have an instance id")));
   }
 
   @Test
