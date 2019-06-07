@@ -904,14 +904,14 @@ abstract class RenewalAPITests extends APITests {
     DateTime loanDate =
       new DateTime(2019, DateTimeConstants.JANUARY, 25, 10, 0, DateTimeZone.UTC);
 
-    LoanPolicyBuilder loanPolicy = new LoanPolicyBuilder()
+    LoanPolicyBuilder loanPolicyTemplate = new LoanPolicyBuilder()
       .withName("Loan policy")
       .rolling(Period.days(loanPeriodDays))
       .renewWith(Period.days(renewPeriodDays))
       .withClosedLibraryDueDateManagement(
         DueDateManagement.KEEP_THE_CURRENT_DUE_DATE.getValue());
 
-    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicy).getId();
+    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicyTemplate).getId();
     useLoanPolicyAsFallback(loanPolicyIdForCheckOut,
       requestPoliciesFixture.allowAllRequestPolicy().getId(),
       noticePoliciesFixture.activeNotice().getId());
@@ -923,7 +923,7 @@ abstract class RenewalAPITests extends APITests {
         .at(checkoutServicePointId)
         .on(loanDate));
 
-    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicy
+    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicyTemplate
       .withName("For renew")
       .withClosedLibraryDueDateManagement(
         DueDateManagement.MOVE_TO_THE_END_OF_THE_PREVIOUS_OPEN_DAY.getValue())
@@ -956,14 +956,14 @@ abstract class RenewalAPITests extends APITests {
     DateTime loanDate =
       new DateTime(2019, DateTimeConstants.JANUARY, 25, 10, 0, DateTimeZone.UTC);
 
-    LoanPolicyBuilder loanPolicy = new LoanPolicyBuilder()
+    LoanPolicyBuilder loanPolicyTemplate = new LoanPolicyBuilder()
       .withName("Loan policy")
       .rolling(Period.days(loanPeriodDays))
       .renewWith(Period.days(renewPeriodDays))
       .withClosedLibraryDueDateManagement(
         DueDateManagement.KEEP_THE_CURRENT_DUE_DATE.getValue());
 
-    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicy).getId();
+    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicyTemplate).getId();
     useLoanPolicyAsFallback(loanPolicyIdForCheckOut,
       requestPoliciesFixture.allowAllRequestPolicy().getId(),
       noticePoliciesFixture.activeNotice().getId());
@@ -975,7 +975,7 @@ abstract class RenewalAPITests extends APITests {
         .at(checkoutServicePointId)
         .on(loanDate));
 
-    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicy
+    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicyTemplate
       .withName("For renew")
       .withClosedLibraryDueDateManagement(
         DueDateManagement.MOVE_TO_THE_END_OF_THE_NEXT_OPEN_DAY.getValue())
@@ -1007,13 +1007,13 @@ abstract class RenewalAPITests extends APITests {
     DateTime loanDate =
       new DateTime(2019, DateTimeConstants.FEBRUARY, 1, 10, 0, DateTimeZone.UTC);
 
-    LoanPolicyBuilder loanPolicy = new LoanPolicyBuilder()
+    LoanPolicyBuilder loanPolicyTemplate = new LoanPolicyBuilder()
       .withName("Loan policy")
       .rolling(Period.hours(loanPeriodHours))
       .withClosedLibraryDueDateManagement(
         DueDateManagement.KEEP_THE_CURRENT_DUE_DATE.getValue());
 
-    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicy).getId();
+    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicyTemplate).getId();
     useLoanPolicyAsFallback(loanPolicyIdForCheckOut,
       requestPoliciesFixture.allowAllRequestPolicy().getId(),
       noticePoliciesFixture.activeNotice().getId());
@@ -1025,7 +1025,7 @@ abstract class RenewalAPITests extends APITests {
         .at(checkoutServicePointId)
         .on(loanDate));
 
-    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicy
+    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicyTemplate
       .withName("For renew")
       .withClosedLibraryDueDateManagement(
         DueDateManagement.MOVE_TO_BEGINNING_OF_NEXT_OPEN_SERVICE_POINT_HOURS.getValue())
@@ -1058,14 +1058,14 @@ abstract class RenewalAPITests extends APITests {
     DateTime loanDate =
       WEDNESDAY_DATE.toDateTime(START_TIME_SECOND_PERIOD, DateTimeZone.UTC);
 
-    LoanPolicyBuilder loanPolicy = new LoanPolicyBuilder()
+    LoanPolicyBuilder loanPolicyTemplate = new LoanPolicyBuilder()
       .withName("Loan policy")
       .rolling(Period.hours(loanPeriodHours))
       .renewWith(Period.hours(renewPeriodHours))
       .withClosedLibraryDueDateManagement(
         DueDateManagement.KEEP_THE_CURRENT_DUE_DATE_TIME.getValue());
 
-    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicy).getId();
+    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicyTemplate).getId();
     useLoanPolicyAsFallback(loanPolicyIdForCheckOut,
       requestPoliciesFixture.allowAllRequestPolicy().getId(),
       noticePoliciesFixture.activeNotice().getId());
@@ -1077,7 +1077,7 @@ abstract class RenewalAPITests extends APITests {
         .at(checkoutServicePointId)
         .on(loanDate));
 
-    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicy
+    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicyTemplate
       .withName("For renew")
       .withClosedLibraryDueDateManagement(
         DueDateManagement.MOVE_TO_END_OF_CURRENT_SERVICE_POINT_HOURS.getValue())
@@ -1114,13 +1114,13 @@ abstract class RenewalAPITests extends APITests {
     DateTime loanDate =
       new DateTime(2019, DateTimeConstants.FEBRUARY, 1, 10, 0, DateTimeZone.forID(expectedTimeZone));
 
-    LoanPolicyBuilder loanPolicy = new LoanPolicyBuilder()
+    LoanPolicyBuilder loanPolicyTemplate = new LoanPolicyBuilder()
       .withName("Loan policy")
       .rolling(Period.hours(loanPeriodHours))
       .withClosedLibraryDueDateManagement(
         DueDateManagement.KEEP_THE_CURRENT_DUE_DATE.getValue());
 
-    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicy).getId();
+    UUID loanPolicyIdForCheckOut = loanPolicyClient.create(loanPolicyTemplate).getId();
     useLoanPolicyAsFallback(loanPolicyIdForCheckOut,
       requestPoliciesFixture.allowAllRequestPolicy().getId(),
       noticePoliciesFixture.activeNotice().getId());
@@ -1132,7 +1132,7 @@ abstract class RenewalAPITests extends APITests {
         .at(checkoutServicePointId)
         .on(loanDate));
 
-    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicy
+    UUID loanPolicyIdForRenew = loanPolicyClient.create(loanPolicyTemplate
       .withName("For renew")
       .withClosedLibraryDueDateManagement(
         DueDateManagement.MOVE_TO_BEGINNING_OF_NEXT_OPEN_SERVICE_POINT_HOURS.getValue())

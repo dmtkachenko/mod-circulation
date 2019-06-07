@@ -140,6 +140,7 @@ public class RequestsAPICreateMultipleRequestsTests extends APITests {
 
     final IndividualResource firstRequest = requestsClient.createAtSpecificLocation(
       new RequestBuilder()
+        .withRandomId()
         .open()
         .hold()
         .forItem(smallAngryPlanet)
@@ -148,6 +149,7 @@ public class RequestsAPICreateMultipleRequestsTests extends APITests {
 
     final IndividualResource secondRequest = requestsClient.createAtSpecificLocation(
       new RequestBuilder()
+        .withRandomId()
         .open()
         .hold()
         .forItem(smallAngryPlanet)
@@ -156,6 +158,7 @@ public class RequestsAPICreateMultipleRequestsTests extends APITests {
 
     final IndividualResource thirdRequest = requestsClient.createAtSpecificLocation(
       new RequestBuilder()
+        .withRandomId()
         .open()
         .hold()
         .forItem(smallAngryPlanet)

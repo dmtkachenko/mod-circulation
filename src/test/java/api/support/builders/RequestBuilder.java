@@ -9,6 +9,7 @@ import static org.folio.circulation.support.JsonPropertyFetcher.getUUIDProperty;
 import static org.folio.circulation.support.JsonStringArrayHelper.toStream;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.folio.circulation.support.http.client.IndividualResource;
@@ -46,9 +47,8 @@ public class RequestBuilder extends JsonBuilder implements Builder {
   private final UUID pickupServicePointId;
   private final Tags tags;
 
-
   public RequestBuilder() {
-    this(UUID.randomUUID(),
+    this(null,
       "Hold",
       new DateTime(2017, 7, 15, 9, 35, 27, DateTimeZone.UTC),
       UUID.randomUUID(),
@@ -145,7 +145,10 @@ public class RequestBuilder extends JsonBuilder implements Builder {
   public JsonObject create() {
     JsonObject request = new JsonObject();
 
-    put(request, "id", this.id);
+    if(Objects.nonNull(id)) {
+      put(request, "id", this.id);
+    }
+
     put(request, "requestType", this.requestType);
     put(request, "requestDate", this.requestDate);
     put(request, "itemId", this.itemId);
@@ -215,6 +218,10 @@ public class RequestBuilder extends JsonBuilder implements Builder {
       this.position,
       this.pickupServicePointId,
       this.tags);
+  }
+
+  public RequestBuilder withRandomId() {
+    return withId(UUID.randomUUID());
   }
 
   public RequestBuilder withRequestDate(DateTime requestDate) {

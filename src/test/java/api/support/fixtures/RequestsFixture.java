@@ -41,7 +41,7 @@ public class RequestsFixture {
     return requestsClient.create(requestToBuild);
   }
 
-  public Response attemptPlace(RequestBuilder requestToBuild)
+  private Response attemptPlace(RequestBuilder requestToBuild)
     throws InterruptedException,
     MalformedURLException,
     TimeoutException,
