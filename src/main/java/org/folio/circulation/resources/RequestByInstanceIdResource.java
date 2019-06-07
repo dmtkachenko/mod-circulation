@@ -10,7 +10,7 @@ import static org.folio.circulation.support.ValidationErrorFailure.singleValidat
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -286,32 +286,31 @@ public class RequestByInstanceIdResource extends Resource {
   }
 
   private static Map<Item, RequestQueue> sortRequestQueues(Map<Item,RequestQueue> unsortedItems){
+    //Use linked hash map to guarantee sort order
+    return unsortedItems
+      .entrySet()
+      .stream()
+      .sorted(compareQueueLengths())
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+        (oldValue, newValue) -> oldValue, (LinkedHashMap::new)));
+  }
 
-    List<Map.Entry<Item, RequestQueue> > list = new LinkedList<>(unsortedItems.entrySet());
-
-    // Sort the list
-    Collections.sort(list, (q1, q2) -> {
+  private static Comparator<Map.Entry<Item, RequestQueue>> compareQueueLengths() {
+    return (q1, q2) -> {
       RequestQueue queue1 = q1.getValue();
       RequestQueue queue2 = q2.getValue();
 
       int result = queue1.size() - queue2.size();
+
       if (result == 0) {
-        result = queue1.getLowestPriorityFulfillableRequest()
+        return queue1.getLowestPriorityFulfillableRequest()
           .getRequestExpirationDate()
           .compareTo(queue2.getLowestPriorityFulfillableRequest().getRequestExpirationDate());
       }
+
       return result;
-    });
-
-    // put data from sorted list to hashmap
-    HashMap<Item, RequestQueue> sortItems = new LinkedHashMap<>();
-    for (Map.Entry<Item, RequestQueue> newEntry : list) {
-      sortItems.put(newEntry.getKey(), newEntry.getValue());
-    }
-
-    return sortItems;
+    };
   }
-
 
   private ProxyRelationshipValidator createProxyRelationshipValidator(
     JsonObject representation,

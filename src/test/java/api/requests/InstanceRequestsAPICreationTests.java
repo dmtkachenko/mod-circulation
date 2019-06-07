@@ -1,5 +1,6 @@
 package api.requests;
 
+import static org.folio.circulation.support.JsonPropertyFetcher.getNestedStringProperty;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -14,7 +15,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.folio.circulation.domain.ItemStatus;
 import org.folio.circulation.domain.RequestType;
 import org.folio.circulation.support.http.client.IndividualResource;
 import org.folio.circulation.support.http.client.Response;
@@ -414,58 +414,45 @@ public class InstanceRequestsAPICreationTests extends APITests {
   }
 
   private void placeHoldRequest(IndividualResource item, UUID requestPickupServicePointId,
-                                List<IndividualResource> patrons, LocalDate requestExpirationDate){
+                                List<IndividualResource> patrons, LocalDate requestExpirationDate)
+    throws InterruptedException,
+    MalformedURLException,
+    TimeoutException,
+    ExecutionException {
 
-    patrons.forEach( patron -> {
-      IndividualResource holdRequest = null;
-      try {
-        holdRequest = requestsClient.create(
-          new RequestBuilder()
-          .hold()
-          .forItem(item)
-          .withPickupServicePointId(requestPickupServicePointId)
-          .withRequestExpiration(requestExpirationDate)
-          .by(patron));
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } catch (MalformedURLException e) {
-        e.printStackTrace();
-      } catch (TimeoutException e) {
-        e.printStackTrace();
-      } catch (ExecutionException e) {
-        e.printStackTrace();
-      }
+    for (IndividualResource patron : patrons) {
+      final IndividualResource request = requestsFixture.place(new RequestBuilder()
+        .hold()
+        .forItem(item)
+        .withPickupServicePointId(requestPickupServicePointId)
+        .withRequestExpiration(requestExpirationDate)
+        .by(patron));
 
-      JsonObject requestedItem = (holdRequest != null) ? holdRequest.getJson().getJsonObject("item") : new JsonObject();
-      assertThat(requestedItem.getString("status"), is(ItemStatus.CHECKED_OUT.getValue()));
-    });
+      final String itemStatus = getNestedStringProperty(request.getJson(), "item", "status");
+
+      assertThat(itemStatus, is("Checked out"));
+    }
   }
 
-  private void placePagedRequest(IndividualResource item, UUID requestPickupServicePointId,
-                                List<IndividualResource> patrons, LocalDate requestExpirationDate){
+  private void placePagedRequest(IndividualResource item,
+    UUID requestPickupServicePointId, List<IndividualResource> patrons,
+    LocalDate requestExpirationDate)
+    throws InterruptedException,
+    MalformedURLException,
+    TimeoutException,
+    ExecutionException {
 
-    patrons.forEach( patron -> {
-      IndividualResource pagedRequest = null;
-      try {
-        pagedRequest = requestsClient.create(
-          new RequestBuilder()
-            .page()
-            .forItem(item)
-            .withPickupServicePointId(requestPickupServicePointId)
-            .withRequestExpiration(requestExpirationDate)
-            .by(patron));
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } catch (MalformedURLException e) {
-        e.printStackTrace();
-      } catch (TimeoutException e) {
-        e.printStackTrace();
-      } catch (ExecutionException e) {
-        e.printStackTrace();
-      }
+    for (IndividualResource patron : patrons) {
+      final IndividualResource request = requestsFixture.place(new RequestBuilder()
+        .page()
+        .forItem(item)
+        .withPickupServicePointId(requestPickupServicePointId)
+        .withRequestExpiration(requestExpirationDate)
+        .by(patron));
 
-      JsonObject requestedItem = (pagedRequest != null) ? pagedRequest.getJson().getJsonObject("item") : new JsonObject();
-      assertThat(requestedItem.getString("status"), is(ItemStatus.PAGED.getValue()));
-    });
+      final String itemStatus = getNestedStringProperty(request.getJson(), "item", "status");
+
+      assertThat(itemStatus, is("Paged"));
+    }
   }
 }
