@@ -279,7 +279,7 @@ public class LoanPolicy {
             alternateDueDatePeriod, fixedDueDateSchedules, this::errorForPolicy);
         }
         else {
-          return new DefaultFixedScheduleCheckOutDueDateStrategy(getId(), getName(),
+          return new FixedScheduleCheckOutDueDateStrategy(getId(), getName(),
             fixedDueDateSchedules, this::errorForPolicy);
         }
       }
