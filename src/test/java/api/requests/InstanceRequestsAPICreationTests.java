@@ -54,14 +54,8 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instanceMultipleCopies.getId(), requesterId,
                                             pickupServicePointId, requestDate, requestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
+    JsonObject representation = placeInstanceRequest(requestBody).getJson();
 
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-
-    JsonObject representation = postResponse.getJson();
     validateInstanceRequestResponse(representation,
       pickupServicePointId,
       instanceMultipleCopies.getId(),
@@ -89,20 +83,13 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), requesterId,
       pickupServicePointId, requestDate, requestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
+    JsonObject representation = placeInstanceRequest(requestBody).getJson();
 
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-
-    JsonObject representation = postResponse.getJson();
     validateInstanceRequestResponse(representation,
       pickupServicePointId,
       instance.getId(),
       item.getId(),
       RequestType.PAGE);
-
   }
 
   @Test
@@ -128,20 +115,13 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), requesterId,
       pickupServicePointId, requestDate, requestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
+    JsonObject representation = placeInstanceRequest(requestBody).getJson();
 
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-
-    JsonObject representation = postResponse.getJson();
     validateInstanceRequestResponse(representation,
       pickupServicePointId,
       instance.getId(),
       null,  //although we create the items in certain order, this order may not be what the code picks up when query for items by holdings, so there is no point to check for itemId
       RequestType.PAGE);
-
   }
 
   @Test
@@ -232,13 +212,7 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), instanceRequester.getId(),
       pickupServicePointId, instanceRequestDate, instanceRequestDateRequestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
-
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-    assertEquals(201, postResponse.getStatusCode());
+    IndividualResource postResponse = placeInstanceRequest(requestBody);
 
     JsonObject representation = postResponse.getJson();
     validateInstanceRequestResponse(representation, pickupServicePointId,
@@ -286,13 +260,7 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), instanceRequester.getId(),
       pickupServicePointId, instanceRequestDate, instanceRequestDateRequestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
-
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-    assertEquals(201, postResponse.getStatusCode());
+    IndividualResource postResponse = placeInstanceRequest(requestBody);
 
     JsonObject representation = postResponse.getJson();
     validateInstanceRequestResponse(representation, pickupServicePointId, instance.getId(), item2.getId(), RequestType.PAGE);
@@ -351,13 +319,7 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), instanceRequester.getId(),
       pickupServicePointId, instanceRequestDate, instanceRequestDateRequestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
-
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-    assertEquals(201, postResponse.getStatusCode());
+    IndividualResource postResponse = placeInstanceRequest(requestBody);
 
     JsonObject representation = postResponse.getJson();
     //Item2 should have been chosen because it has the nearest requestExpirationDate
@@ -415,17 +377,28 @@ public class InstanceRequestsAPICreationTests extends APITests {
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), instanceRequester.getId(),
       pickupServicePointId, instanceRequestDate, instanceRequestDateRequestExpirationDate);
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
-
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-    assertEquals(201, postResponse.getStatusCode());
+    IndividualResource postResponse = placeInstanceRequest(requestBody);
 
     JsonObject representation = postResponse.getJson();
     //Item2 should have been chosen because Jessica already requested item1
     validateInstanceRequestResponse(representation, pickupServicePointId, instance.getId(), item2.getId(), RequestType.HOLD);
+  }
+
+  private IndividualResource placeInstanceRequest(JsonObject request)
+    throws InterruptedException,
+    ExecutionException,
+    TimeoutException {
+
+    final CompletableFuture<Response> createCompleted = new CompletableFuture<>();
+
+    client.post(InterfaceUrls.requestsUrl("/instances"), request,
+      ResponseHandler.any(createCompleted));
+
+    Response response = createCompleted.get(10, TimeUnit.SECONDS);
+
+    assertEquals(201, response.getStatusCode());
+
+    return new IndividualResource(response);
   }
 
   private void validateInstanceRequestResponse(JsonObject representation,
