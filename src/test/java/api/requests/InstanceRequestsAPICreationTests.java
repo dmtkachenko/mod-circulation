@@ -1,13 +1,11 @@
 package api.requests;
 
-import static org.folio.circulation.support.JsonPropertyFetcher.getNestedStringProperty;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -205,14 +203,26 @@ public class InstanceRequestsAPICreationTests extends APITests {
     final IndividualResource item2 = itemsFixture.basedUponDunkirkWithCustomHoldingAndLocationAndCheckedOut(holdings.getId(), null);
 
     //Set up request queues. Item1 has 2 requests (1 queued request), Item2 has 0 queued request. Item2 should be satisfied.
-    List<IndividualResource> patrons1 = new ArrayList<>();
-    patrons1.add(usersFixture.jessica());
-    patrons1.add(usersFixture.james());
-    placeHoldRequest(item1, pickupServicePointId, patrons1, requestExpirationDate);
+    final RequestBuilder holdRequestTemplate = new RequestBuilder()
+      .hold()
+      .withPickupServicePointId(pickupServicePointId)
+      .withRequestExpiration(requestExpirationDate);
 
-    List<IndividualResource> patrons2 = new ArrayList<>();
-    patrons2.add(usersFixture.steve());
-    placeHoldRequest(item2, pickupServicePointId, patrons2, requestExpirationDate);
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.jessica()));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.james()));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item2)
+      .by(usersFixture.steve()));
+
+    final List<JsonObject> allRequests = requestsClient.getAll();
+
+    assertThat(allRequests.size(), is(3));
 
     IndividualResource instanceRequester = usersFixture.charlotte();
 
@@ -230,9 +240,9 @@ public class InstanceRequestsAPICreationTests extends APITests {
     Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
     assertEquals(201, postResponse.getStatusCode());
 
-
     JsonObject representation = postResponse.getJson();
-    validateInstanceRequestResponse(representation, pickupServicePointId, instance.getId(), item2.getId(), RequestType.HOLD);
+    validateInstanceRequestResponse(representation, pickupServicePointId,
+      instance.getId(), item2.getId(), RequestType.HOLD);
   }
 
   @Test
@@ -255,10 +265,18 @@ public class InstanceRequestsAPICreationTests extends APITests {
     final IndividualResource item2 = itemsFixture.basedUponDunkirkWithCustomHoldingAndLocation(holdings.getId(), null);
 
     //Set up request queues. Item1 has requests (1 queued request), Item2 is Avaialble. Item2 should be satisfied.
-    List<IndividualResource> patrons1 = new ArrayList<>();
-    patrons1.add(usersFixture.jessica());
-    patrons1.add(usersFixture.james());
-    placeHoldRequest(item1, pickupServicePointId, patrons1, requestExpirationDate);
+    final RequestBuilder holdRequestTemplate = new RequestBuilder()
+      .hold()
+      .withPickupServicePointId(pickupServicePointId)
+      .withRequestExpiration(requestExpirationDate);
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.jessica()));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.james()));
 
     IndividualResource instanceRequester = usersFixture.charlotte();
 
@@ -304,15 +322,29 @@ public class InstanceRequestsAPICreationTests extends APITests {
     final IndividualResource item2 = itemsFixture.basedUponDunkirkWithCustomHoldingAndLocationAndCheckedOut(holdings.getId(), null);
 
     //Set up request queues. Item1 has requests (1 queued request), Item2 is requests (1 queued), either should be satisfied.
-    List<IndividualResource> patrons1 = new ArrayList<>();
-    patrons1.add(usersFixture.jessica());
-    patrons1.add(usersFixture.james());
-    placeHoldRequest(item1, pickupServicePointId, patrons1, requestExpirationDate1);
+    final RequestBuilder holdRequestTemplate = new RequestBuilder()
+      .hold()
+      .withPickupServicePointId(pickupServicePointId);
 
-   List<IndividualResource> patrons2 = new ArrayList<>();
-    patrons2.add(usersFixture.steve());
-    patrons2.add(usersFixture.rebecca());
-    placeHoldRequest(item2, pickupServicePointId, patrons2, requestExpirationDate2);
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.jessica())
+      .withRequestExpiration(requestExpirationDate1));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.james())
+      .withRequestExpiration(requestExpirationDate1));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item2)
+      .by(usersFixture.steve())
+      .withRequestExpiration(requestExpirationDate2));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item2)
+      .by(usersFixture.rebecca())
+      .withRequestExpiration(requestExpirationDate2));
 
     IndividualResource instanceRequester = usersFixture.charlotte();
 
@@ -348,7 +380,7 @@ public class InstanceRequestsAPICreationTests extends APITests {
     DateTime instanceRequestDateRequestExpirationDate = instanceRequestDate.plusDays(30);
 
     LocalDate requestDate = new LocalDate(2017, 7, 22);
-    LocalDate requestExpirationDate2 = requestDate.minusDays(30);
+    LocalDate otherHoldRequestExpirationDate = requestDate.minusDays(30);
 
     IndividualResource instance = instancesFixture.basedUponDunkirk();
     IndividualResource holdings = holdingsFixture.defaultWithHoldings(instance.getId());
@@ -367,10 +399,18 @@ public class InstanceRequestsAPICreationTests extends APITests {
       .withRequestExpiration(requestDate.plusDays(30))
       .by(instanceRequester));
 
-    List<IndividualResource> patrons2 = new ArrayList<>();
-    patrons2.add(usersFixture.steve());
-    patrons2.add(usersFixture.rebecca());
-    placeHoldRequest(item2, pickupServicePointId, patrons2, requestExpirationDate2);
+    final RequestBuilder holdRequestTemplate = new RequestBuilder()
+      .hold()
+      .withPickupServicePointId(pickupServicePointId)
+      .withRequestExpiration(otherHoldRequestExpirationDate);
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.steve()));
+
+    requestsFixture.place(holdRequestTemplate
+      .forItem(item1)
+      .by(usersFixture.rebecca()));
 
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), instanceRequester.getId(),
       pickupServicePointId, instanceRequestDate, instanceRequestDateRequestExpirationDate);
@@ -413,26 +453,5 @@ public class InstanceRequestsAPICreationTests extends APITests {
     requestBody.put("requestExpirationDate", requestExpirationDate.toString(ISODateTimeFormat.dateTime()));
 
     return requestBody;
-  }
-
-  private void placeHoldRequest(IndividualResource item, UUID requestPickupServicePointId,
-                                List<IndividualResource> patrons, LocalDate requestExpirationDate)
-    throws InterruptedException,
-    MalformedURLException,
-    TimeoutException,
-    ExecutionException {
-
-    for (IndividualResource patron : patrons) {
-      final IndividualResource request = requestsFixture.place(new RequestBuilder()
-        .hold()
-        .forItem(item)
-        .withPickupServicePointId(requestPickupServicePointId)
-        .withRequestExpiration(requestExpirationDate)
-        .by(patron));
-
-      final String itemStatus = getNestedStringProperty(request.getJson(), "item", "status");
-
-      assertThat(itemStatus, is("Checked out"));
-    }
   }
 }
