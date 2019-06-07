@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -42,7 +41,6 @@ public class LoanPolicy {
   private static final String DURATION = "duration";
   private static final String ALTERNATE_CHECKOUT_LOAN_PERIOD_KEY = "alternateCheckoutLoanPeriod";
 
-  private static final String KEY_ERROR_TEXT = "the \"%s\" in the holds is not recognized";
   private static final String INTERVAL_ERROR_TEXT = "the interval \"%s\" in \"%s\" is not recognized";
   private static final String DURATION_ERROR_TEXT = "the duration \"%s\" in \"%s\" is invalid";
 
@@ -396,7 +394,7 @@ public class LoanPolicy {
   }
 
   //TODO: potentially remove this, when builder can create class or JSON representation
-  public LoanPolicy withDueDateSchedules(JsonObject fixedDueDateSchedules) {
+  LoanPolicy withDueDateSchedules(JsonObject fixedDueDateSchedules) {
     return withDueDateSchedules(FixedDueDateSchedules.from(fixedDueDateSchedules));
   }
 
@@ -405,7 +403,7 @@ public class LoanPolicy {
   }
 
   //TODO: potentially remove this, when builder can create class or JSON representation
-  public LoanPolicy withAlternateRenewalSchedules(JsonObject renewalSchedules) {
+  LoanPolicy withAlternateRenewalSchedules(JsonObject renewalSchedules) {
     return withAlternateRenewalSchedules(FixedDueDateSchedules.from(renewalSchedules));
   }
 

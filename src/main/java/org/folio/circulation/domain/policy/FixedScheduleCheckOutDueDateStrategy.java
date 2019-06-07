@@ -15,7 +15,7 @@ class FixedScheduleCheckOutDueDateStrategy extends DueDateStrategy {
   private static final String NO_APPLICABLE_DUE_DATE_SCHEDULE_MESSAGE =
     "loan date falls outside of the date ranges in the loan policy";
 
-  protected final FixedDueDateSchedules fixedDueDateSchedules;
+  private final FixedDueDateSchedules fixedDueDateSchedules;
 
   FixedScheduleCheckOutDueDateStrategy(
     String loanPolicyId,
