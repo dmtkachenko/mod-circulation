@@ -251,6 +251,7 @@ public class LoanPolicy {
         this::errorForPolicy);
     }
 
+    Period alternateDueDatePeriod = getPeriod(holds, ALTERNATE_CHECKOUT_LOAN_PERIOD_KEY);
     if(isRolling(loansPolicy)) {
       if(isRenewal) {
         return new RollingRenewalDueDateStrategy(getId(), getName(),
@@ -260,7 +261,7 @@ public class LoanPolicy {
       else {
         Period rollingPeriod = getPeriod(loansPolicy);
         if(isAlternateDueDateSchedule(requestQueue)) {
-          rollingPeriod = getPeriod(holds, ALTERNATE_CHECKOUT_LOAN_PERIOD_KEY);
+          rollingPeriod = alternateDueDatePeriod;
         }
         return new RollingCheckOutDueDateStrategy(getId(), getName(),
           rollingPeriod, fixedDueDateSchedules, this::errorForPolicy);
@@ -273,8 +274,9 @@ public class LoanPolicy {
       }
       else {
         if(isAlternateDueDateSchedule(requestQueue)) {
-          return new AlternateFixedScheduleCheckOutDueDateStrategy(getId(), getName(),
-            buildAlternateDueDateSchedules(systemDate, holds), this::errorForPolicy);
+          
+          return new RollingCheckOutDueDateStrategy(getId(), getName(),
+            alternateDueDatePeriod, fixedDueDateSchedules, this::errorForPolicy);
         }
         else {
           return new DefaultFixedScheduleCheckOutDueDateStrategy(getId(), getName(),
@@ -286,13 +288,6 @@ public class LoanPolicy {
       return new UnknownDueDateStrategy(getId(), getName(),
         getProfileId(loansPolicy), isRenewal, this::errorForPolicy);
     }
-  }
-  
-  private FixedDueDateSchedules buildAlternateDueDateSchedules(DateTime systemDate, JsonObject holds) {
-    List<JsonObject> schedules =
-      new ArrayList<>(fixedDueDateSchedules.getSchedules());
-    schedules.add(0, buildSchedule(systemDate, holds));
-    return new FixedDueDateSchedules("alternateDueDateSchedule", schedules);
   }
 
   private boolean isAlternateDueDateSchedule(RequestQueue requestQueue) {
@@ -312,30 +307,6 @@ public class LoanPolicy {
       }
     }
     return isAlternateDueDateSchedule;
-  }
-
-  private JsonObject buildSchedule(DateTime systemDate, JsonObject request) {
-    String key = ALTERNATE_CHECKOUT_LOAN_PERIOD_KEY;
-    Period duration = getPeriod(request, key);
-    DateTime dueDate = duration.addTo(
-        systemDate,
-        () -> errorForPolicy(format(KEY_ERROR_TEXT, key)),
-        interval -> errorForPolicy(format(INTERVAL_ERROR_TEXT, interval, key)),
-        dur -> errorForPolicy(format(DURATION_ERROR_TEXT, dur, key)))
-          .value();
-
-    Map<String, Object> scheduleProperties = new HashMap<>();
-    // Ensure the schedule contains the system date
-    scheduleProperties.put("from", systemDate.minusDays(1).toString());
-    scheduleProperties.put("due", dueDate.toString());
-    scheduleProperties.put("to", duration.addTo(
-        dueDate,
-        () -> errorForPolicy(format(KEY_ERROR_TEXT, key)),
-        interval -> errorForPolicy(format(INTERVAL_ERROR_TEXT, interval, key)),
-        dur -> errorForPolicy(format(DURATION_ERROR_TEXT, dur, key)))
-        .value().toString());
-    return new JsonObject(scheduleProperties);
-    
   }
 
   private JsonObject getLoansPolicy() {
