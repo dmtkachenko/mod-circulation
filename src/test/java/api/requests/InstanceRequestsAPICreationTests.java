@@ -149,15 +149,9 @@ public class InstanceRequestsAPICreationTests extends APITests {
     requestBody.remove("pickupServicePointId");
     requestBody.remove("instanceId");
 
-    CompletableFuture<Response> postCompleted = new CompletableFuture<>();
+    final Response response = attemptToPlaceInstanceRequest(requestBody);
 
-    client.post(InterfaceUrls.requestsUrl("/instances"), requestBody,
-      ResponseHandler.any(postCompleted));
-
-    Response postResponse = postCompleted.get(10, TimeUnit.SECONDS);
-    assertEquals(422, postResponse.getStatusCode());
-
-    JsonObject representation = postResponse.getJson();
+    JsonObject representation = response.getJson();
     assertEquals("Request must have an instance id", representation.getJsonArray("errors")
                                                                             .getJsonObject(0)
                                                                             .getString("message"));
@@ -389,16 +383,32 @@ public class InstanceRequestsAPICreationTests extends APITests {
     ExecutionException,
     TimeoutException {
 
+    Response response = postInstanceRequest(request).get(10, TimeUnit.SECONDS);
+
+    assertEquals(201, response.getStatusCode());
+
+    return new IndividualResource(response);
+  }
+
+  private Response attemptToPlaceInstanceRequest(JsonObject request)
+    throws InterruptedException,
+    ExecutionException,
+    TimeoutException {
+
+    Response response = postInstanceRequest(request).get(10, TimeUnit.SECONDS);
+
+    assertEquals(422, response.getStatusCode());
+
+    return response;
+  }
+
+  private CompletableFuture<Response> postInstanceRequest(JsonObject request) {
     final CompletableFuture<Response> createCompleted = new CompletableFuture<>();
 
     client.post(InterfaceUrls.requestsUrl("/instances"), request,
       ResponseHandler.any(createCompleted));
 
-    Response response = createCompleted.get(10, TimeUnit.SECONDS);
-
-    assertEquals(201, response.getStatusCode());
-
-    return new IndividualResource(response);
+    return createCompleted;
   }
 
   private void validateInstanceRequestResponse(JsonObject representation,
