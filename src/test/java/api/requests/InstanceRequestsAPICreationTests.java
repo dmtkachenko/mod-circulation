@@ -333,7 +333,7 @@ public class InstanceRequestsAPICreationTests extends APITests {
   }
 
   @Test
-  public void canPlaceATitleLevelRequestOnUnvailableCopyWhenThereIsAvailableItem()
+  public void canPlaceRequestOnUnavailableCopyWhenAnotherCopyHasBeenRequested()
     throws InterruptedException,
     ExecutionException,
     TimeoutException,
@@ -348,7 +348,6 @@ public class InstanceRequestsAPICreationTests extends APITests {
     DateTime instanceRequestDateRequestExpirationDate = instanceRequestDate.plusDays(30);
 
     LocalDate requestDate = new LocalDate(2017, 7, 22);
-    LocalDate requestExpirationDate1 = requestDate.plusDays(30);
     LocalDate requestExpirationDate2 = requestDate.minusDays(30);
 
     IndividualResource instance = instancesFixture.basedUponDunkirk();
@@ -359,16 +358,19 @@ public class InstanceRequestsAPICreationTests extends APITests {
     final IndividualResource item2 = itemsFixture.basedUponDunkirkWithCustomHoldingAndLocationAndCheckedOut(holdings.getId(), null);
 
     //Set up request queues. Item1 has requests (1 queued request), Item2 is requests (1 queued), either could be satisfied.
-    List<IndividualResource> patrons1 = new ArrayList<>();
-    patrons1.add(usersFixture.jessica());
-    placePagedRequest(item1, pickupServicePointId, patrons1, requestExpirationDate1);
+    IndividualResource instanceRequester = usersFixture.jessica();
+
+    requestsFixture.place(new RequestBuilder()
+      .page()
+      .forItem(item1)
+      .withPickupServicePointId(pickupServicePointId)
+      .withRequestExpiration(requestDate.plusDays(30))
+      .by(instanceRequester));
 
     List<IndividualResource> patrons2 = new ArrayList<>();
     patrons2.add(usersFixture.steve());
     patrons2.add(usersFixture.rebecca());
     placeHoldRequest(item2, pickupServicePointId, patrons2, requestExpirationDate2);
-
-    IndividualResource instanceRequester = usersFixture.jessica();
 
     JsonObject requestBody = createInstanceRequestObject(instance.getId(), instanceRequester.getId(),
       pickupServicePointId, instanceRequestDate, instanceRequestDateRequestExpirationDate);
@@ -431,28 +433,6 @@ public class InstanceRequestsAPICreationTests extends APITests {
       final String itemStatus = getNestedStringProperty(request.getJson(), "item", "status");
 
       assertThat(itemStatus, is("Checked out"));
-    }
-  }
-
-  private void placePagedRequest(IndividualResource item,
-    UUID requestPickupServicePointId, List<IndividualResource> patrons,
-    LocalDate requestExpirationDate)
-    throws InterruptedException,
-    MalformedURLException,
-    TimeoutException,
-    ExecutionException {
-
-    for (IndividualResource patron : patrons) {
-      final IndividualResource request = requestsFixture.place(new RequestBuilder()
-        .page()
-        .forItem(item)
-        .withPickupServicePointId(requestPickupServicePointId)
-        .withRequestExpiration(requestExpirationDate)
-        .by(patron));
-
-      final String itemStatus = getNestedStringProperty(request.getJson(), "item", "status");
-
-      assertThat(itemStatus, is("Paged"));
     }
   }
 }
