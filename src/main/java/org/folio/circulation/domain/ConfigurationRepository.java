@@ -6,6 +6,7 @@ import static org.folio.circulation.support.CqlQuery.exactMatch;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import org.folio.circulation.domain.anonymize.LoanPeriodConfiguration;
 import org.folio.circulation.support.Clients;
 import org.folio.circulation.support.CollectionResourceClient;
 import org.folio.circulation.support.CqlQuery;
@@ -38,6 +39,11 @@ public class ConfigurationRepository {
     return lookupConfigurations(cqlQueryResult, applySearchSchedulerNoticesLimit());
   }
 
+  public CompletableFuture<Result<LoanPeriodConfiguration>> lookupConfigurationPeriod(){
+    Result<CqlQuery> cqlQueryResult = defineModuleNameAndConfigNameFilter("LOAN_HISTORY", "loan_history");
+    return lookupConfigurations(cqlQueryResult, applyConfigurationPeriod());
+  }
+
   private CompletableFuture<Result<DateTimeZone>> findTimeZoneConfiguration() {
     Result<CqlQuery> cqlQueryResult = defineModuleNameAndConfigNameFilter("ORG", "localeSettings");
     return lookupConfigurations(cqlQueryResult, applySearchDateTimeZone());
@@ -65,5 +71,9 @@ public class ConfigurationRepository {
 
   private Function<MultipleRecords<Configuration>, Integer> applySearchSchedulerNoticesLimit() {
     return configurations -> new ConfigurationService().findSchedulerNoticesLimit(configurations.getRecords());
+  }
+
+  private Function<MultipleRecords<Configuration>, LoanPeriodConfiguration> applyConfigurationPeriod() {
+    return configurations -> new ConfigurationService().findConfigurationPeriod(configurations.getRecords());
   }
 }
