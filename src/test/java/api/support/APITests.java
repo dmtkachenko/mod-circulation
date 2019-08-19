@@ -154,6 +154,9 @@ public abstract class APITests {
   protected final ScheduledNoticeProcessingClient scheduledNoticeProcessingClient =
     new ScheduledNoticeProcessingClient();
 
+  protected final ScheduledAnonymizeProcessingClient scheduledAnonymizeProcessingClient =
+    new ScheduledAnonymizeProcessingClient();
+
   protected APITests() {
     this(true);
   }
