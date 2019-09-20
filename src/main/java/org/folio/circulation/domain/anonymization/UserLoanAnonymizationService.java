@@ -2,12 +2,15 @@ package org.folio.circulation.domain.anonymization;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.folio.circulation.domain.AnonymizeStorageLoansRepository;
 import org.folio.circulation.domain.Loan;
 import org.folio.circulation.domain.anonymization.checks.AnonymizationChecker;
+import org.folio.circulation.domain.anonymization.checks.FeesAndFinesClosedAnonymizationChecker;
 import org.folio.circulation.support.Result;
 
 /**
@@ -15,14 +18,17 @@ import org.folio.circulation.support.Result;
  * and fines associated with it.
  *
  */
-public class DefaultLoanAnonymizationService implements LoanAnonymizationService {
+public class UserLoanAnonymizationService implements LoanAnonymizationService {
 
   private static final String CAN_BE_ANONYMIZED_KEY = "_";
 
-  private final LoanAnonymizationHelper anonymization;
+  protected final LoanAnonymizationHelper anonymization;
   private final AnonymizeStorageLoansRepository anonymizeStorageLoansRepository;
 
-  DefaultLoanAnonymizationService(LoanAnonymizationHelper anonymization) {
+  private final List<AnonymizationChecker> anonymizationCheckers =
+      Collections.singletonList(new FeesAndFinesClosedAnonymizationChecker());
+
+  UserLoanAnonymizationService(LoanAnonymizationHelper anonymization) {
     this.anonymization = anonymization;
     anonymizeStorageLoansRepository = new AnonymizeStorageLoansRepository(anonymization.clients());
   }
@@ -42,7 +48,7 @@ public class DefaultLoanAnonymizationService implements LoanAnonymizationService
     return completedFuture(anonymizationRecords.map(records -> {
       HashSetValuedHashMap<String, String> multiMap = new HashSetValuedHashMap<>();
       for (Loan loan : records.getLoansFound()) {
-        for (AnonymizationChecker checker : anonymization.anonymizationCheckers()) {
+        for (AnonymizationChecker checker : getAnonymizationCheckers()) {
           if (!checker.canBeAnonymized(loan)) {
             multiMap.put(checker.getReason(), loan.getId());
           } else {
@@ -55,5 +61,9 @@ public class DefaultLoanAnonymizationService implements LoanAnonymizationService
         .withNotAnonymizedLoans(multiMap);
     }));
 
+  }
+
+  protected List<AnonymizationChecker> getAnonymizationCheckers() {
+    return anonymizationCheckers;
   }
 }

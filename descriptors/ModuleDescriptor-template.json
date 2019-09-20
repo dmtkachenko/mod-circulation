@@ -489,6 +489,15 @@
           ],
           "unit": "minute",
           "delay": "2"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/circulation/scheduled-anonymize-processing",
+          "modulePermissions": ["modperms.circulation.loans.anonymize"],
+          "unit": "minute",
+          "delay": "1"
         }
       ]
     }
